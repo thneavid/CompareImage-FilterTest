@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_sobel"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="Sobel" />
+        <item
+            android:id="@+id/nav_features"
+            android:icon="@drawable/ic_menu_gallery"
+            android:title="Features" />
+        <item
+            android:id="@+id/nav_canny"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Canny" />
+        <item
+            android:id="@+id/nav_adjust"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Adjust" />
+        <item
+            android:id="@+id/nav_thin"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Thinning" />
+    </group>
+
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Associate" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_menu_send"
+                android:title="Associate" />
+        </menu>
+    </item>
+
+</menu>
