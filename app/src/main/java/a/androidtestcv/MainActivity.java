@@ -282,8 +282,43 @@ public class MainActivity extends AppCompatActivity
             }
         } else if (id == R.id.nav_adjust) {
             if (leftImage != null && rightImage != null) {
-                leftImage = manager.imAdjust(leftImage);
-                rightImage = manager.imAdjust(rightImage);
+                leftImage = manager.histEq(leftImage);
+                rightImage = manager.histEq(rightImage);
+                ivL.setImageBitmap(leftImage);
+                ivR.setImageBitmap(rightImage);
+            }
+        } else if (id == R.id.nav_hist_filt) {
+            if (leftImage != null && rightImage != null) {
+                leftImage = manager.histFilter(leftImage);
+                rightImage = manager.histFilter(rightImage);
+                ivL.setImageBitmap(leftImage);
+                ivR.setImageBitmap(rightImage);
+            }
+        } else if (id == R.id.nav_threshold) {
+            if (leftImage != null && rightImage != null) {
+                leftImage = manager.threshold(leftImage);
+                rightImage = manager.threshold(rightImage);
+                ivL.setImageBitmap(leftImage);
+                ivR.setImageBitmap(rightImage);
+            }
+        } else if (id == R.id.nav_blur_median) {
+            if (leftImage != null && rightImage != null) {
+                leftImage = manager.blurMedian(leftImage);
+                rightImage = manager.blurMedian(rightImage);
+                ivL.setImageBitmap(leftImage);
+                ivR.setImageBitmap(rightImage);
+            }
+        } else if (id == R.id.nav_blur_gauss) {
+            if (leftImage != null && rightImage != null) {
+                leftImage = manager.blurGauss(leftImage);
+                rightImage = manager.blurGauss(rightImage);
+                ivL.setImageBitmap(leftImage);
+                ivR.setImageBitmap(rightImage);
+            }
+        } else if (id == R.id.nav_blur_mean) {
+            if (leftImage != null && rightImage != null) {
+                leftImage = manager.blurMean(leftImage);
+                rightImage = manager.blurMean(rightImage);
                 ivL.setImageBitmap(leftImage);
                 ivR.setImageBitmap(rightImage);
             }
@@ -291,6 +326,13 @@ public class MainActivity extends AppCompatActivity
             if (leftImage != null && rightImage != null) {
                 leftImage = manager.thinning(leftImage);
                 rightImage = manager.thinning(rightImage);
+                ivL.setImageBitmap(leftImage);
+                ivR.setImageBitmap(rightImage);
+            }
+        } else if (id == R.id.nav_intad) {
+            if (leftImage != null && rightImage != null) {
+                leftImage = manager.intensityAdjust(leftImage);
+                rightImage = manager.intensityAdjust(rightImage);
                 ivL.setImageBitmap(leftImage);
                 ivR.setImageBitmap(rightImage);
             }

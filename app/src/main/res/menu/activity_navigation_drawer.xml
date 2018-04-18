@@ -19,6 +19,30 @@
             android:icon="@drawable/ic_menu_manage"
             android:title="Adjust" />
         <item
+            android:id="@+id/nav_hist_filt"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Histogram filtration" />
+        <item
+            android:id="@+id/nav_threshold"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Threshold" />
+        <item
+            android:id="@+id/nav_intad"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Intad" />
+        <item
+            android:id="@+id/nav_blur_median"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Blue median" />
+        <item
+            android:id="@+id/nav_blur_gauss"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Blur gauss" />
+        <item
+            android:id="@+id/nav_blur_mean"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Blur mean" />
+        <item
             android:id="@+id/nav_thin"
             android:icon="@drawable/ic_menu_manage"
             android:title="Thinning" />

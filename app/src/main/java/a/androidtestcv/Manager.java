@@ -12,6 +12,7 @@ import java.util.List;
 import boofcv.abst.feature.detect.interest.ConfigFastHessian;
 import boofcv.abst.feature.detect.interest.InterestPointDetector;
 import boofcv.abst.filter.derivative.ImageGradient;
+import boofcv.alg.enhance.EnhanceImageOps;
 import boofcv.alg.feature.detect.edge.CannyEdge;
 import boofcv.alg.feature.detect.edge.EdgeContour;
 import boofcv.alg.filter.binary.BinaryImageOps;
@@ -26,6 +27,7 @@ import boofcv.factory.filter.derivative.FactoryDerivative;
 import boofcv.struct.image.GrayS16;
 import boofcv.struct.image.GrayU8;
 import boofcv.struct.image.ImageBase;
+import boofcv.struct.image.Planar;
 import georegression.struct.point.Point2D_F64;
 
 import static boofcv.android.ConvertBitmap.declareStorage;
@@ -214,26 +216,112 @@ public class Manager {
             throw new IllegalArgumentException("Input and output must have the same shape");
     }
 
-    public Bitmap imAdjust(Bitmap input) {
+    public Bitmap histEq(Bitmap input) {
         GrayU8 gray = ConvertBitmap.bitmapToGray(input, (GrayU8) null, null);
-        GrayU8 bw = new GrayU8(gray.width, gray.height);
+        GrayU8 adjusted = gray.createSameShape();
+
+        int histogram[] = new int[256];
+        int transform[] = new int[256];
+
+        ImageStatistics.histogram(gray, 0, histogram);
+//        EnhanceImageOps.equalize(histogram, transform);
+        EnhanceImageOps.equalizeLocal(gray, 50, adjusted, histogram, transform);
+//        EnhanceImageOps.applyTransform(gray, transform, adjusted);
+        return ConvertBitmap.grayToBitmap(adjusted, input.getConfig());
+    }
+
+    public Bitmap histFilter(Bitmap input) {
+        GrayU8 gray = ConvertBitmap.bitmapToGray(input, (GrayU8) null, null);
+        GrayU8 adjusted = gray.createSameShape();
+
+        int histogram[] = new int[256];
+        int transform[] = new int[256];
+
+        ImageStatistics.histogram(gray, 0, histogram);
+        for (int i = 0, size = histogram.length; i < size; i++) { // 32
+            histogram[i] = (int) Math.round(histogram[i] / (1 + Math.exp(-(i - 128) / 10)));
+        }
+        EnhanceImageOps.equalize(histogram, transform);
+        EnhanceImageOps.applyTransform(gray, transform, adjusted);
+        return ConvertBitmap.grayToBitmap(adjusted, input.getConfig());
+//        EnhanceImageOps.equalizeLocal(gray, 50, adjusted, histogram, transform);
+    }
+
+    public Bitmap threshold(Bitmap input) {
+        GrayU8 gray = ConvertBitmap.bitmapToGray(input, (GrayU8) null, null);
+        GrayU8 bw = gray.createSameShape();
 //        GThresholdImageOps.localBlockOtsu(gray, bw, false, ConfigLength.fixed(21), 0.5, 1.0, true);
-        GThresholdImageOps.localSauvola(gray, bw, 15, 0.30f, false);
-//        GThresholdImageOps.localSquare(gray, bw, 20,0,true,null,null);
+//        GThresholdImageOps.localSauvola(gray, bw, 15, 0.30f, false);
+        GThresholdImageOps.localSquare(gray, bw, 20, 0.95, true, null, null);
 //        GThresholdImageOps.localGaussian(gray, bw, 20,0,true,null,null);
-        return ConvertBitmap.grayToBitmap(bw, input.getConfig());
+        VisualizeImageData.binaryToBitmap(bw, false, input, null);
+        return input;
     }
 
     public Bitmap thinning(Bitmap input) {
         GrayU8 gray = ConvertBitmap.bitmapToGray(input, (GrayU8) null, null);
-        GrayU8 bw = gray.clone();
-        GThresholdImageOps.localSauvola(gray, bw, 15, 0.30f, false);
+        GrayU8 bw = gray.createSameShape();
+        GrayU8 thinned = gray.createSameShape();
+        GThresholdImageOps.localSquare(gray, bw, 20, 0.95, false, null, null);
+//        GThresholdImageOps.localSauvola(gray, bw, 15, 0.30f, false);
 //        GThresholdImageOps.localSauvola(gray, bw, ConfigLength.fixed(21), 0.30f, true);
-        GrayU8 thinned = BinaryImageOps.thin(bw, -1, null);
-        return ConvertBitmap.grayToBitmap(thinned, input.getConfig());
+        BinaryImageOps.thin(bw, -1, thinned);
+        VisualizeImageData.binaryToBitmap(thinned, false, input, null);
+        return input;
     }
 
-//    public Bitmap imAdjust(Bitmap input) {
+    public Bitmap intensityAdjust(Bitmap input) {
+        int width = input.getWidth();
+        int height = input.getHeight();
+        Planar<GrayU8> image = new Planar<>(GrayU8.class, width, height, 3);
+        ConvertBitmap.bitmapToPlanar(input, image, GrayU8.class, null);
+        byte[] storage = declareStorage(input, null);
+        image.getBands();
+        int indexDst = 0;
+        for (int y = 0; y < height; y++) {
+            int index = image.startIndex + y * image.stride;
+            for (int x = 0; x < width; x++) {
+                int value = 0;
+                for (GrayU8 band : image.getBands()) {
+                    value += band.data[index];
+                }
+                index++;
+                value = value / 3;
+                if (value < 85) value = 0;
+                storage[indexDst++] = (byte) value;
+                storage[indexDst++] = (byte) value;
+                storage[indexDst++] = (byte) value;
+                storage[indexDst++] = (byte) 0xFF;
+            }
+        }
+        Bitmap output = Bitmap.createBitmap(width, height, input.getConfig());
+        output.copyPixelsFromBuffer(ByteBuffer.wrap(storage));
+
+        return ConvertBitmap.grayToBitmap(image.getBand(0), input.getConfig());
+    }
+
+    public Bitmap blurMedian(Bitmap input) {
+        GrayU8 gray = ConvertBitmap.bitmapToGray(input, (GrayU8) null, null);
+        GrayU8 output = gray.createSameShape();
+        BlurImageOps.median(gray, output, 5);
+        return ConvertBitmap.grayToBitmap(output, input.getConfig());
+    }
+
+    public Bitmap blurGauss(Bitmap input) {
+        GrayU8 gray = ConvertBitmap.bitmapToGray(input, (GrayU8) null, null);
+        GrayU8 output = gray.createSameShape();
+        BlurImageOps.gaussian(gray, output, 0.5,5, null);
+        return ConvertBitmap.grayToBitmap(output, input.getConfig());
+    }
+
+    public Bitmap blurMean(Bitmap input) {
+        GrayU8 gray = ConvertBitmap.bitmapToGray(input, (GrayU8) null, null);
+        GrayU8 output = gray.createSameShape();
+        BlurImageOps.mean(gray, output, 5, null);
+        return ConvertBitmap.grayToBitmap(output, input.getConfig());
+    }
+
+//    public Bitmap histEq(Bitmap input) {
 //        GrayU8 gray = ConvertBitmap.bitmapToGray(input, (GrayU8) null, null);
 //        int width = input.getWidth();
 //        int height = input.getHeight();
